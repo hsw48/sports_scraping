@@ -1,6 +1,30 @@
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timedelta
+from pymongo import MongoClient
+
+def is_more_than_three_months_away(date_str):
+    # Parse the date string into a datetime object
+    event_date = datetime.strptime(date_str, '%Y-%m-%d')
+    
+    # Get the current date
+    current_date = datetime.now()
+    
+    # Calculate the difference in days
+    difference = event_date - current_date
+    
+    # Check if the difference is more than 30 days
+    return difference > timedelta(days=90)
+
+def start_date_has_passed(date_str):
+    # Parse the date string into a datetime object
+    event_date = datetime.strptime(date_str, '%Y-%m-%d')
+    
+    # Get the current date
+    current_date = datetime.now()
+    
+    # Check if the date is before current date
+    return event_date < current_date
 
 def parse_date_range(date_range):
     # Example date range string: "Feb 15 - Mar 2"
@@ -58,11 +82,11 @@ def convert_date(date_str):
 # Function to scrape upgaming events from different leagues
 def scrape_upcoming_games():
 
-    sports = ['f1', 'tennis', 'golf'] # 'mma', 'racing', 'nfl'
+    leagues = {'f1': 'F1', 'tennis': 'ATP', 'golf': 'PGA'} # 'mma', 'racing', 'nfl'
 
     # URL for ESPN's sports chedules
-    for sport in sports:
-        url = 'https://www.espn.com/' + sport + '/schedule'
+    for key in leagues:
+        url = 'https://www.espn.com/' + key + '/schedule'
         print(url)
 
         # Headers needed to bypass ESPN blocking script access
@@ -78,67 +102,94 @@ def scrape_upcoming_games():
 
         #List to store the events 
         events = []
-        #Collect all the tables
-        tables = soup.find_all('table', 'Table')
-        for table in tables:
-            
-            events = table.find_all('tr')
 
-            for event in events:
-                event_object = {}
-                event_name = None
-                 # Define potential selectors for event name
-                event_name_selectors = [
-                    ('p', 'eventAndLocation__tournamentLink'), # Tennis, Golf
-                    ('a', 'AnchorLink') # F1
-                ]
+        events = soup.find_all('tr')
 
-                # Try each selector until we find the event name
-                for tag, class_name in event_name_selectors:
-                    try:
-                        event_name = event.find(tag, class_=class_name).text.strip()
-                        break  # Exit loop if we find the event name
-                    except AttributeError:
-                        continue  # Try the next selector if this one fails
+        for event in events:
 
-                if event_name is None:
-                    continue  # Skip this row is no event name
+            event_object = {}
+            event_name = None
+            # Define potential selectors for event name
+            event_name_selectors = [
+                ('p', 'eventAndLocation__tournamentLink'), # Tennis, Golf
+                ('a', 'AnchorLink') # F1
+            ]
 
-                location_selectors = [
-                    ('div', 'eventAndLocation__tournamentLocation'), # Tennis, Golf
-                    ('div', '') # F1
-                ]
-
-                # Try each selector until we find the location name
-                for tag, class_name in location_selectors:
-                    try:
-                        location = event.find(tag, class_=class_name).text.strip()
-                        break  # Exit loop if we find the location name
-                    except AttributeError:
-                        continue  # Try the next selector if this one fails
-
+            # Try each selector until we find the event name
+            for tag, class_name in event_name_selectors:
                 try:
-                    date = event.find('td', class_='dateRange__col Table__TD').text.strip()
-                    if ' - ' in date:
-                        # Indicates a date range
-                        start_date, end_date = parse_date_range(date)
-                    else:
-                        start_date = convert_date(date)
-                        end_date = start_date
-
-                    event_object = {
-                        'sport': sport,
-                        'start_date': start_date,
-                        'end_date': end_date,
-                        'event_name': event_name,
-                        'location': location
-                    }
-
-                    print(event_object)
-                    print('-' * 40)
-                    print()
-                
+                    event_name = event.find(tag, class_=class_name).text.strip()
+                    break  # Exit loop if we find the event name
                 except AttributeError:
+                    continue  # Try the next selector if this one fails
+
+            if event_name is None:
+                continue  # Skip this row if no event name
+
+            location_selectors = [
+                ('div', 'eventAndLocation__tournamentLocation'), # Tennis, Golf
+                ('div', '') # F1
+            ]
+
+            # Try each selector until we find the location name
+            for tag, class_name in location_selectors:
+                try:
+                    location = event.find(tag, class_=class_name).text.strip()
+                    break  # Exit loop if we find the location name
+                except AttributeError:
+                    continue  # Try the next selector if this one fails
+
+            date_selectors = [
+                ('td', 'dateRange__col Table__TD'), # These are different depending on past/future events
+                ('td', 'dateAndTickets__col Table__TD') 
+            ]
+
+            # Try each selector until we find the location name
+            for tag, class_name in date_selectors:
+                try:
+                    date = event.find(tag, class_=class_name).text.strip()
+                    break  # Exit loop if we find the date name
+                except AttributeError:
+                    continue  # Try the next selector if this one fails
+
+            try:
+                if ' - ' in date:
+                    # Indicates a date range
+                    start_date, end_date = parse_date_range(date)
+                else:
+                    start_date = convert_date(date)
+                    end_date = start_date
+                
+                if is_more_than_three_months_away(start_date):
+                    continue
+                
+                if start_date_has_passed(start_date):
                     continue
 
+                event_object = {
+                    'sport': key,
+                    'league': leagues[key],
+                    'event_name': event_name,
+                    'location': location
+                    'start_date': start_date,
+                    'end_date': end_date
+                }
+                print('Adding to MongoDB events collection:')
+                print(event_object)
+                print('-' * 40)
+                collection.insert_one(event_object)
+    
+            except AttributeError:
+                continue
+
+
+# MongoDB connection
+print('Connecting to MongoDB client...')
+client = MongoClient('mongodb+srv://admin:adminPassword@cluster0.vrjnhbr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+db = client['harrison-woodward-interview']
+collection = db['events']
+print('Connected to MongoDB')
+
 scrape_upcoming_games()
+
+#admin adminPassword
