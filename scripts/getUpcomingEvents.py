@@ -185,7 +185,7 @@ def scrape_upcoming_games():
 
 # MongoDB connection
 print('Connecting to MongoDB client...')
-client = MongoClient('mongodb+srv://admin:adminPassword@cluster0.vrjnhbr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+client = MongoClient('mongodb+srv://admin:{PASSWORD}@cluster0.vrjnhbr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
 db = client['harrison-woodward-interview']
 collection = db['events']
 print('Connected to MongoDB')
