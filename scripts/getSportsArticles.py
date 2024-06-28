@@ -41,7 +41,7 @@ def scrape_articles_from_the_score():
 
             article_details = {}
             article_details['title'] = article.find('h6').text.strip()
-            article_details['url'] = article.find('a')['href']
+            article_details['link'] = article.find('a')['href']
             article_details['author'] = article.find('span', class_='hsJSom').text.strip()
             article_details['excerpt'] = article.find('span', class_='excerpt').text.strip()
             images = article.find_all('img', class_='image-next-root')
@@ -52,6 +52,10 @@ def scrape_articles_from_the_score():
 
             article_details['image'] = best_image
             article_details['image-alt'] = article.find('img', class_='image-next-root')['alt']
+
+            print('Article Details:')
+            print(article_details)
+            print()
 
             # Match articles to events
             matched_events = match_article_to_events(article_details, key)
@@ -64,7 +68,7 @@ def scrape_articles_from_the_score():
             # Store matched articles in MongoDB
             for event in matched_events:
                 articles_collection.update_one({'_id': article_id.inserted_id}, {'$push': {'events': event['_id']}})
-                events_collection.update_one({'_id': event['_id']}, { '$push': {'articles': article_id.inserted_id}})
+                events_collection.update_one({'_id': event['_id']}, { '$push': {'articles': article_details}})
 
 def match_article_to_events(article_details, key):
     matched_events = []
@@ -77,7 +81,7 @@ def match_article_to_events(article_details, key):
 
 # MongoDB connection
 print('Connecting to MongoDB client...')
-client = MongoClient('mongodb+srv://admin:adminPassword@cluster0.vrjnhbr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+client = MongoClient('mongodb+srv://admin:{MONGODB_ADMIN_PASSWORD}@cluster0.vrjnhbr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
 db = client['harrison-woodward-interview']
 events_collection = db['events']
 articles_collection = db['articles']

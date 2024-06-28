@@ -169,7 +169,7 @@ def scrape_upcoming_games():
 
                 event_object = {
                     'sport': key,
-                    'league': leagues[key],
+                    'event_league': leagues[key],
                     'event_name': event_name,
                     'event_nickname': event_name,
                     'location': location,
