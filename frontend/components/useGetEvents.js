@@ -6,7 +6,7 @@ const getEvents = async (
 ) => {
 
     const { data } = await axios.post(
-        "https://y34eaogv52.execute-api.us-east-1.amazonaws.com/event/all",
+        "https://vj9xgmutk0.execute-api.us-east-1.amazonaws.com/event/all",
         {
             offset: pageParam,
             limit: 3

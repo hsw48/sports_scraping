@@ -6,7 +6,7 @@ const getEvent = async (
 ) => {
 
     const { data } = await axios.post(
-        "https://y34eaogv52.execute-api.us-east-1.amazonaws.com/event/id",
+        "https://vj9xgmutk0.execute-api.us-east-1.amazonaws.com/event/id",
         {
             event_id: event_id
         },

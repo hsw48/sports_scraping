@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from pymongo import MongoClient
+import uuid
 
 def is_more_than_three_months_away(date_str):
     # Parse the date string into a datetime object
@@ -168,13 +169,15 @@ def scrape_upcoming_games():
                     continue
 
                 event_object = {
+                    'event_id': str(uuid.uuid4()),
                     'sport': key,
                     'event_league': leagues[key],
                     'event_name': event_name,
                     'event_nickname': event_name,
                     'location': location,
                     'start_date': start_date,
-                    'end_date': end_date
+                    'end_date': end_date,
+                    'num_articles': 0
                 }
                 # Most F1 articles refer only to the title without the sponsor
                 # Example: Qatar Airways Spanish GP is referred to as Spanish GP

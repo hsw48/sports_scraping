@@ -3,8 +3,9 @@ const mongo_cluster = require("../../utils/mongo_cluster.js")
 
 export async function main(event, context) {
     context.callbackWaitsForEmptyEventLoop = false;
-    //const cluster = await mongo_cluster.connect(process.env.stage);
-    //const database = cluster.db("application");
+    const cluster = await mongo_cluster.connect();
+    const db = cluster.db("harrison-woodward-interview");
+    const events_collection = db.collection('events')
 
     if ("warmer" in event) { return }
 
@@ -25,8 +26,9 @@ export async function main(event, context) {
 
     let event_id = body.event_id
 
+    let event_details = await events_collection.findOne({'event_id': event_id })
 
-    return example_event
+    return event_details
 
 }
 

@@ -3,8 +3,9 @@ const mongo_cluster = require("../../utils/mongo_cluster.js")
 
 export async function main(event, context) {
     context.callbackWaitsForEmptyEventLoop = false;
-    //const cluster = await mongo_cluster.connect(process.env.stage);
-    //const database = cluster.db("application");
+    const cluster = await mongo_cluster.connect();
+    const db = cluster.db("harrison-woodward-interview");
+    const events_collection = db.collection('events')
 
     if ("warmer" in event) { return }
     
@@ -26,6 +27,8 @@ export async function main(event, context) {
     let offset = body.offset
     let limit = body.limit
 
+    let list_of_events = await events_collection.find().sort({'num_articles': -1}).toArray()
+
     if (offset < 0 || limit <= 0 || offset >= list_of_events.length) {
         return {
             "events": [],
@@ -39,7 +42,7 @@ export async function main(event, context) {
     
 }
 
-const list_of_events = [
+const list_of_events_test = [
     {
         "event_id": "001",
         "event_name": "Super Bowl LVII",

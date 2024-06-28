@@ -69,6 +69,7 @@ def scrape_articles_from_the_score():
             for event in matched_events:
                 articles_collection.update_one({'_id': article_id.inserted_id}, {'$push': {'events': event['_id']}})
                 events_collection.update_one({'_id': event['_id']}, { '$push': {'articles': article_details}})
+                events_collection.update_one({'_id': event['_id']}, { '$inc': {'num_articles': 1}})
 
 def match_article_to_events(article_details, key):
     matched_events = []

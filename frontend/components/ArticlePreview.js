@@ -27,7 +27,7 @@ export default function ArticlePreview({ data }) {
                     }}
                 >
                     <Image
-                        source={{ uri: "https://pikkit-ios-cdn.s3.amazonaws.com/super_bowl_example.png" }}
+                        source={{ uri: data.image }}
                         style={{
                             width: 400,
                             height: 200,
