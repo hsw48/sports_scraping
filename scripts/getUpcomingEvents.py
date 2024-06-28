@@ -23,8 +23,9 @@ def start_date_has_passed(date_str):
     # Get the current date
     current_date = datetime.now()
     
-    # Check if the date is before current date
-    return event_date < current_date
+    # Decided to get events that haven't started, or started in the last 4 weeks
+    # Due to there being articles about recent sporting events
+    return event_date < (current_date-timedelta(days=28))
 
 def parse_date_range(date_range):
     # Example date range string: "Feb 15 - Mar 2"
@@ -170,10 +171,19 @@ def scrape_upcoming_games():
                     'sport': key,
                     'league': leagues[key],
                     'event_name': event_name,
-                    'location': location
+                    'event_nickname': event_name,
+                    'location': location,
                     'start_date': start_date,
                     'end_date': end_date
                 }
+                # Most F1 articles refer only to the title without the sponsor
+                # Example: Qatar Airways Spanish GP is referred to as Spanish GP
+                if key == 'f1':
+                    word_array = list(event_name.split(' '))
+                    length = len(word_array)
+                    event_nickname = word_array[length-2] + ' ' + word_array[length-1]
+                    event_object['event_nickname'] = event_nickname
+ 
                 print('Adding to MongoDB events collection:')
                 print(event_object)
                 print('-' * 40)
@@ -185,7 +195,7 @@ def scrape_upcoming_games():
 
 # MongoDB connection
 print('Connecting to MongoDB client...')
-client = MongoClient('mongodb+srv://admin:{PASSWORD}@cluster0.vrjnhbr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+client = MongoClient('mongodb+srv://admin:{MONGODB_ADMIN_PASSWORD}@cluster0.vrjnhbr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
 db = client['harrison-woodward-interview']
 collection = db['events']
 print('Connected to MongoDB')

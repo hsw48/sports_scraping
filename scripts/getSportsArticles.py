@@ -10,7 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 
 # Path to WebDriver
-CHROME_DRIVER_PATH = '/Users/coding/Downloads/chromedriver-mac-arm64/chromedriver'
+CHROME_DRIVER_PATH = ''
 
 # Set up Selenium
 options = webdriver.ChromeOptions()
@@ -34,9 +34,6 @@ def scrape_articles_from_the_score():
         # Get the page source and parse it with BeautifulSoup
         page_source = driver.page_source
         soup = BeautifulSoup(page_source, 'html.parser')
-
-        # Close the driver
-        driver.quit()
     
         articles = soup.find_all('div', class_='more-stories')
 
@@ -59,23 +56,27 @@ def scrape_articles_from_the_score():
 
             print('article_details')
             print(article_details)
-            # # Match articles to events based on your criteria
-            # matched_events = match_article_to_events(article_details)
+            # Match articles to events
+            matched_events = match_article_to_events(article_details, key)
 
-            # # Store matched articles in MongoDB
-            # for event in matched_events:
-            #     article_details['event_id'] = event['_id']  # Assuming events have unique IDs in MongoDB
-            #     articles_collection.insert_one(article_details)
+            article_id = None
+            if len(matched_events) > 0:
+                # If we have at least one matched event, store the article
+                article_id = articles_collection.insert_one(article_details)
 
-# def match_article_to_events(article_details):
-#     matched_events = []
+            # Store matched articles in MongoDB
+            for event in matched_events:
+                articles_collection.update_one({'_id': article_id.inserted_id}, {'$push': {'events': event['_id']}})
+                events_collection.update_one({'_id': event['_id']}, { '$push': {'articles': article_id.inserted_id}})
+
+def match_article_to_events(article_details, key):
+    matched_events = []
     
-#     # Criteria could include matching keywords in the title or content to event details
-#     for event in events_collection.find():
-#         if event['event_name'] in article_details['title'] or event['event_name'] in article_details['content']:
-#             matched_events.append(event)
+    for event in events_collection.find({'sport': key}):
+        if event['event_nickname'] in article_details['title'] or event['event_nickname'] in article_details['excerpt']:
+            matched_events.append(event)
 
-#     return matched_events
+    return matched_events
 
 # MongoDB connection
 print('Connecting to MongoDB client...')
@@ -87,3 +88,5 @@ print('Connected to MongoDB')
 
 
 scrape_articles_from_the_score()
+# Close the driver
+driver.quit()
