@@ -53,9 +53,6 @@ def scrape_articles_from_the_score():
             article_details['image'] = best_image
             article_details['image-alt'] = article.find('img', class_='image-next-root')['alt']
 
-
-            print('article_details')
-            print(article_details)
             # Match articles to events
             matched_events = match_article_to_events(article_details, key)
 
