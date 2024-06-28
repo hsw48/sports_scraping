@@ -55,10 +55,10 @@ export default function ArticlePreview({ data }) {
                     <Text
                         style={{
                             color: '#B8BBBE',
-                            fontSize: 13
+                            fontSize: 13,
                         }}
                     >
-                        {data.date_published + " · " + data.estimated_reading_time + " read"}
+                        {data.excerpt.substring(0, 30) + '...'}
                     </Text>
                     <Text
                         style={{
