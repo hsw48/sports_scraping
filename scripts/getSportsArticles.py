@@ -10,7 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 
 # Path to WebDriver
-CHROME_DRIVER_PATH = ''
+CHROME_DRIVER_PATH = '/Users/coding/Downloads/chromedriver-mac-arm64/chromedriver'
 
 # Set up Selenium
 options = webdriver.ChromeOptions()
@@ -82,7 +82,7 @@ def match_article_to_events(article_details, key):
 
 # MongoDB connection
 print('Connecting to MongoDB client...')
-client = MongoClient('mongodb+srv://admin:{MONGODB_ADMIN_PASSWORD}@cluster0.vrjnhbr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+client = MongoClient('mongodb+srv://admin:adminPassword@cluster0.vrjnhbr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
 db = client['harrison-woodward-interview']
 events_collection = db['events']
 articles_collection = db['articles']

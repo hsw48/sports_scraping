@@ -27,7 +27,7 @@ export async function main(event, context) {
     let offset = body.offset
     let limit = body.limit
 
-    let list_of_events = await events_collection.find().sort({'num_articles': -1}).toArray()
+    let list_of_events = await events_collection.find().sort({'num_articles': -1}).toArray() // end_date { $gte: }
 
     if (offset < 0 || limit <= 0 || offset >= list_of_events.length) {
         return {

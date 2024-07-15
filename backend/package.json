@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@linear/sdk": "^13.0.0",
+    "aws": "^0.0.3-2",
     "moment-timezone": "^0.5.43"
   }
 }

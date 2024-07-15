@@ -169,7 +169,7 @@ def scrape_upcoming_games():
                     continue
 
                 event_object = {
-                    'event_id': str(uuid.uuid4()),
+                    'event_id': str(uuid.uuid4()), # year_sport_name
                     'sport': key,
                     'event_league': leagues[key],
                     'event_name': event_name,
@@ -190,7 +190,7 @@ def scrape_upcoming_games():
                 print('Adding to MongoDB events collection:')
                 print(event_object)
                 print('-' * 40)
-                collection.insert_one(event_object)
+                collection.update(event_object, {upsert: true}) 
     
             except AttributeError:
                 continue
@@ -198,7 +198,7 @@ def scrape_upcoming_games():
 
 # MongoDB connection
 print('Connecting to MongoDB client...')
-client = MongoClient('mongodb+srv://admin:{MONGODB_ADMIN_PASSWORD}@cluster0.vrjnhbr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+client = MongoClient('mongodb+srv://admin:adminPassword@cluster0.vrjnhbr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
 db = client['harrison-woodward-interview']
 collection = db['events']
 print('Connected to MongoDB')
